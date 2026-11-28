@@ -203,3 +203,16 @@ test_that("Descriptives plot and bar plot draw a single complete pair", {
     expect_true(yLimits[1] <= 12 && yLimits[2] >= 14)
   }
 })
+
+test_that("Paired plot helpers accept one observed value in a measure", {
+  # The form requires two numeric levels per measure, so check the plot helpers directly.
+  dataset <- data.frame(pre = c(12, NA, NA), post = c(14, 10, 13))
+  pair <- c("pre", "post")
+  options <- initTTestOptions("TTestPairedSamples")
+
+  descriptives <- suppressWarnings(jaspTTests:::.ttestPairedDescriptivesPlotFill(dataset, options, pair))
+  bar <- suppressWarnings(jaspTTests:::.ttestDescriptivesBarPlotFill(dataset, options, pair))
+  expect_equal(descriptives$data$y[order(descriptives$data$x)], c(12, 14))
+  expect_equal(bar$data$dependent, c(12, 14))
+  expect_true(all(is.na(bar$data$ciLower) & is.na(bar$data$ciUpper)))
+})

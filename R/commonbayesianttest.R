@@ -710,8 +710,8 @@
 
       plot <- createJaspPlot(title = var, width = 530, height = 400)
       if (canDoDescriptives) {
-        if (paired && isFALSE(errors[[var]])) # the plot uses only complete pairs, so count those
-          errors[[var]] <- .hasErrors(na.omit(dataset[unlist(pairs[[var]])]), message = 'short', type = 'observations',
+        if (paired && isFALSE(errors[[var]]))
+          errors[[var]] <- .hasErrors(na.omit(dataset[unlist(pairs[[var]])]), message = 'short', type = c('observations', 'variance'),
                                       all.target = unlist(pairs[[var]]), observations.amount = "< 2")
         if (isFALSE(errors[[var]])) {
 
@@ -785,8 +785,8 @@
 
       barPlot <- createJaspPlot(title = var, width = 530, height = 400)
       if (canDoDescriptives) {
-        if (paired && isFALSE(errors[[var]])) # the plot uses only complete pairs, so count those
-          errors[[var]] <- .hasErrors(na.omit(dataset[unlist(pairs[[var]])]), message = 'short', type = 'observations',
+        if (paired && isFALSE(errors[[var]]))
+          errors[[var]] <- .hasErrors(na.omit(dataset[unlist(pairs[[var]])]), message = 'short', type = c('observations', 'variance'),
                                       all.target = unlist(pairs[[var]]), observations.amount = "< 2")
         if (isFALSE(errors[[var]])) {
 

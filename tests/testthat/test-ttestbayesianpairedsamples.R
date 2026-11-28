@@ -194,3 +194,20 @@ test_that("Descriptives plot and bar plot show an error without complete pairs",
     expect_true(grepl("Number of observations is < 2", plot[["error"]][["errorMessage"]], fixed = TRUE))
   }
 })
+
+test_that("Descriptives plot and bar plot check variance within the complete pairs", {
+  dataset <- data.frame(pre  = c(10, 10, 10, 12, NA),
+                        post = c(12, 13, 14, NA, 15))
+
+  options <- initTTestOptions("TTestBayesianPairedSamples")
+  options$pairs <- list(c("pre", "post"))
+  options$descriptivesPlot <- TRUE
+  options$barPlot <- TRUE
+  results <- jaspTools::runAnalysis("TTestBayesianPairedSamples", dataset, options)
+  descriptives <- results[["results"]][["descriptivesContainer"]][["collection"]]
+  for (plots in c("descriptivesContainer_plots", "descriptivesContainer_barPlots")) {
+    plot <- descriptives[[plots]][["collection"]][[paste0(plots, "_pre - post")]]
+    expect_identical(plot[["status"]], "error")
+    expect_match(plot[["error"]][["errorMessage"]], "The variance in pre is equal to 0", fixed = TRUE)
+  }
+})
