@@ -174,3 +174,61 @@ test_that("Bayesian paired t-test still gives no Bayes factor when the differenc
   expect_true(is.nan(as.numeric(table[["data"]][[1]][["BF"]])))
   expect_length(table[["footnotes"]], 1)
 })
+
+test_that("Bayesian signed-rank test reports empty pairs without interrupting other pairs", {
+  dataset <- data.frame(x = c(2, 3, 4, 5, NA, NA), y = c(NA, NA, NA, NA, 4, 4),
+                        w = c(3, NA, NA, NA, 6, 7), z = c(1, 5, 7, 6, 8, 9))
+  options <- initTTestOptions("TTestBayesianPairedSamples")
+  options$pairs <- list(c("x", "y"), c("x", "w"), c("x", "z"))
+  options$test <- "wilcoxon"
+  options$wilcoxonSamples <- 100L
+
+  set.seed(81)
+  results <- jaspTools::runAnalysis("TTestBayesianPairedSamples", dataset, options)
+  table <- getTtestTable(results)
+  expect_true(is.nan(as.numeric(table[["data"]][[1]][["BF"]])))
+  expect_match(paste(unlist(table[["footnotes"]]), collapse = " "), "No complete pairs are available", fixed = TRUE)
+  expect_true(is.finite(table[["data"]][[2]][["BF"]]))
+  expect_true(is.finite(table[["data"]][[3]][["BF"]]))
+})
+
+test_that("Bayesian descriptives show a constant mean without a credible interval", {
+  dataset <- data.frame(x = c(2, 4, 3, 3, 3, 4, 3), y = rep(30, 7))
+  options <- initTTestOptions("TTestBayesianPairedSamples")
+  options$pairs <- list(c("x", "y"))
+  options$descriptives <- TRUE
+  options$descriptivesPlot <- TRUE
+  options$barPlot <- TRUE
+
+  results <- jaspTools::runAnalysis("TTestBayesianPairedSamples", dataset, options)
+  descriptives <- getDescriptivesTable(results)[["data"]][[2]]
+  expect_equal(descriptives[["mean"]], 30)
+  expect_equal(descriptives[["se"]], 0)
+  expect_identical(descriptives[["lowerCI"]], "")
+  expect_identical(descriptives[["upperCI"]], "")
+
+  getErrorBars <- function(plot) {
+    isErrorBar <- vapply(plot[["layers"]], function(layer) inherits(layer[["geom"]], "GeomErrorbar"), logical(1))
+    ggplot2::layer_data(plot, which(isErrorBar))
+  }
+  figures <- results[["state"]][["figures"]]
+  expect_length(figures, 2)
+  for (figure in figures) {
+    plot <- figure[["obj"]]
+    bars <- getErrorBars(plot)
+    constant <- bars[["x"]] == 2
+    expect_equal(bars[["y"]][constant], 30)
+    expect_true(all(is.na(bars[constant, c("ymin", "ymax")])))
+    expect_true(all(is.finite(unlist(bars[!constant, c("ymin", "ymax")]))))
+    expect_match(plot[["labels"]][["caption"]], "zero variance", fixed = TRUE)
+    expect_gte(max(ggplot2::ggplot_build(plot)[["layout"]][["panel_scales_y"]][[1]]$get_limits()), 30)
+  }
+
+  options$descriptivesPlot <- FALSE
+  options$barPlotErrorType <- "se"
+  results <- jaspTools::runAnalysis("TTestBayesianPairedSamples", dataset, options)
+  plot <- results[["state"]][["figures"]][[1]][["obj"]]
+  bars <- getErrorBars(plot)
+  expect_equal(unname(unlist(bars[bars[["x"]] == 2, c("ymin", "ymax")])), c(30, 30))
+  expect_null(plot[["labels"]][["caption"]])
+})

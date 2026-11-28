@@ -1247,6 +1247,9 @@
     horizontalLineLineType = "dashed"
   ) + jaspGraphs::themeJaspRaw(axis.title.cex = jaspGraphs::getGraphOption("axis.title.cex"))
 
+  if (any(is.na(summaryStat[["ciLower"]]) & is.finite(summaryStat[["median"]])))
+    p <- p + ggplot2::labs(caption = gettext("Credible intervals are unavailable for measures with zero variance."))
+
   return(p)
 
 }
@@ -1280,7 +1283,7 @@
     summaryStat[["ciLower"]] <- summaryStat[["ciLowerSe"]]
     summaryStat[["ciUpper"]] <- summaryStat[["ciUpperSe"]]
   }
-  ciPos <- c(testValueOpt, summaryStat[["ciLower"]], summaryStat[["ciUpper"]])
+  ciPos <- c(testValueOpt, summaryStat[["ciLower"]], summaryStat[["ciUpper"]], summaryStat[["median"]])
   yBreaks <- jaspGraphs::getPrettyAxisBreaks(if (zeroFix) c(0, ciPos) else ciPos)
 
   if (hasGrouping && !paired) {
@@ -1296,7 +1299,7 @@
   p <- ggplot2::ggplot(summaryStat, ggplot2::aes(x = groupingVariable, y = median, group = 1)) +
     ggplot2::geom_hline(yintercept = 0, color = "#858585", size = 0.3) +
     ggplot2::geom_bar(stat = "identity", fill = "grey", col = "black", width = .6, position = pd2) +
-    ggplot2::geom_errorbar(ggplot2::aes(ymin = ciLower, ymax = ciUpper), colour = "black", width = .2, position = pd) +
+    ggplot2::geom_errorbar(ggplot2::aes(ymin = ciLower, ymax = ciUpper), colour = "black", width = .2, position = pd, na.rm = TRUE) +
     xlab +
     ylab +
     ggplot2::scale_y_continuous(breaks = yBreaks, limits = range(yBreaks), oob = scales::rescale_none) +
@@ -1306,6 +1309,9 @@
 
   if (!is.null(testValueOpt))
     p <- p + ggplot2::geom_hline(data = testValue, ggplot2::aes(yintercept = testValue), linetype = "dashed")
+
+  if (errorBarType == "ci" && any(is.na(summaryStat[["ciLower"]]) & is.finite(summaryStat[["median"]])))
+    p <- p + ggplot2::labs(caption = gettext("Credible intervals are unavailable for measures with zero variance."))
 
   return(p)
 

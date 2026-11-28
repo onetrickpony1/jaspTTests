@@ -403,7 +403,11 @@ TTestBayesianOneSampleInternal <- function(jaspResults, dataset, options, state 
   location <- mean(variable)
   scale <- sd(variable) / sqrt(length(variable))
 
-  outTmp <- .qt.shiftedT(c(ciLower, .5, ciUpper), parameters=c(location, scale, df))
+  # At zero sample variance the posterior is improper. Show the sample mean without a credible interval.
+  if (isTRUE(scale == 0))
+    outTmp <- c(NA_real_, location, NA_real_)
+  else
+    outTmp <- .qt.shiftedT(c(ciLower, .5, ciUpper), parameters=c(location, scale, df))
 
   ciLowerSe <- outTmp[2] - scale
   ciUpperSe <- outTmp[2] + scale

@@ -167,6 +167,18 @@ test_that("Paired t-test still stops when the difference is constant", {
   expect_true(grepl("variance", results[["results"]][["errorMessage"]], ignore.case = TRUE))
 })
 
+test_that("Paired normality check requires three complete pairs", {
+  dataset <- data.frame(x = c(2, 4, 3, NA), y = c(4, 4, NA, 4))
+  options <- initTTestOptions("TTestPairedSamples")
+  options$pairs <- list(c("x", "y"))
+  options$normalityTest <- TRUE
+
+  results <- jaspTools::runAnalysis("TTestPairedSamples", dataset, options)[["results"]]
+  expect_equal(results[["ttest"]][["data"]][[1]][["t"]], -1)
+  normality <- results[["AssumptionChecks"]][["collection"]][["AssumptionChecks_ttestNormalTable"]]
+  expect_match(paste(unlist(normality[["footnotes"]]), collapse = " "), "between 3 and 5000 complete pairs", fixed = TRUE)
+})
+
 test_that("Paired t-test with a constant measure keeps the t-test when the effect size is corrected for correlation", {
   # the correlation with a constant measure is undefined, so the corrected d and its interval are empty;
   # t and p as in t.test(x, y, paired = TRUE)

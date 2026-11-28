@@ -341,21 +341,18 @@ TTestPairedSamplesInternal <- function(jaspResults, dataset = NULL, options, ...
     rowName <- paste(p1, p2, sep = "-")
 
     if (p1 != "" && p2 != "") {
-      errors <- .hasErrors(dataset,
-                           message = 'short',
-                           type = c('observations', 'infinity'),
-                           all.target = c(p1, p2),
-                           observations.amount  = c('< 3', '> 5000'))
+      pairData <- na.omit(dataset[c(p1, p2)])
+      n <- nrow(pairData)
+      if (n < 3L || n > 5000L)
+        errors <- list(message = gettext("The Shapiro-Wilk test requires between 3 and 5000 complete pairs."))
+      else
+        errors <- .hasErrors(dataset, message = 'short', type = 'infinity', all.target = c(p1, p2))
 
       if (!identical(errors, FALSE)) {
         row[["W"]] <- NaN
         table$addFootnote(errors$message, colNames = "W", rowNames = rowName)
       } else {
-        c1   <- dataset[[ p1 ]]
-        c2   <- dataset[[ p2 ]]
-        data <- na.omit(c1 - c2)
-
-        r <- stats::shapiro.test(data)
+        r <- stats::shapiro.test(pairData[[p1]] - pairData[[p2]])
         row[["W"]] <- as.numeric(r$statistic)
         row[["p"]] <- r$p.value
       }

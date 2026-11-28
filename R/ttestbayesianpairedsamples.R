@@ -57,12 +57,19 @@ TTestBayesianPairedSamplesInternal <- function(jaspResults, dataset, options) {
 
     if (!(pair[[1L]] == "" || pair[[2L]] == "")) {
 
+      if (isFALSE(errors[[var]])) {
+        subDataSet <- na.omit(dataset[, c(pair[[1L]], pair[[2L]])])
+        if (derivedOptions[["wilcoxTest"]] && nrow(subDataSet) == 0L)
+          errors[[var]] <- list(message = gettext("No complete pairs are available."))
+      }
+
       if (!isFALSE(errors[[var]])) {
 
         errorMessage <- errors[[var]]$message
         ttestTable$addFootnote(errorMessage, rowNames = var, colNames = "BF")
         ttestResults[["status"]][var] <- "error"
         ttestResults[["errorFootnotes"]][[var]] <- errorMessage
+        ttestResults[["plottingError"]][[var]] <- errorMessage
         ttestRows[var, c("BF", "error")] <- NaN
 
       } else {
@@ -71,9 +78,6 @@ TTestBayesianPairedSamplesInternal <- function(jaspResults, dataset, options) {
         # which means they could be forgotten and not created
         bf.raw <- NaN
         error  <- NaN
-
-        subDataSet <- dataset[, c(pair[[1L]], pair[[2L]])]
-        subDataSet <- subDataSet[complete.cases(subDataSet), ]
 
         x <- subDataSet[[1L]]
         y <- subDataSet[[2L]]
