@@ -54,6 +54,8 @@ The paired samples t-test allows you to estimate the effect size  and test the n
 - Exclude cases per dependent variable: In case of multiple t-tests within a single analysis, each test will be conducted using all cases with valid data for the difference score for the particular t-test. Sample sizes may therefore vary across the multiple t-tests.
 - Exclude cases listwise: In case of multiple t-tests within a single analysis, each t-test will be conducted using only cases with valid data for all difference scores. Sample size is therefore constant across the multiple t-tests.
 
+With the default setting, each plot uses the rows with both values present for its pair. The Descriptives table summarizes all available values for each measure, so its means and credible intervals can differ from those in the plots.
+
 ### Prior
 - Default:
   - Cauchy: Scale of the Cauchy prior distribution on effect size under the alternative hypothesis; the default is 0.707.
