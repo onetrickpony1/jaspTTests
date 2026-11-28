@@ -51,6 +51,8 @@ The paired samples t-test allows the user to estimate the effect size  and test 
  - Exclude cases listwise: In case of multiple t-tests within a single analysis, each t-test will be conducted using only cases with valid data for all difference scores.
  Sample size is therefore constant across the tests.
 
+With the default setting, each plot uses the rows with both values present for its pair. The Descriptives table summarizes all available values for each measure, so its means can differ from the plotted means.
+
 ### Output 
 --- 
 
